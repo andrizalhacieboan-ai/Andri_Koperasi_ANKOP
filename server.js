@@ -11,7 +11,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Init Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error("ERROR: SUPABASE_URL atau SUPABASE_ANON_KEY belum diatur di Environment Variables Vercel!");
+}
+const supabase = createClient(supabaseUrl || 'http://localhost', supabaseKey || 'dummy_key');
 
 // Middleware Admin Check
 const checkAdmin = async (req, res, next) => {
