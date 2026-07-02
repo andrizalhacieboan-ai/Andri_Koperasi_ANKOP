@@ -23,6 +23,21 @@
         </div>
     </div>
     <script>
+        function applyDarkModePreference() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                const toggle = document.getElementById('darkModeToggle');
+                if(toggle) toggle.checked = true;
+            }
+        }
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+        applyDarkModePreference();
+        
         function hitung() {
             const p = parseFloat(document.getElementById('plafon').value);
             const t = parseFloat(document.getElementById('tenor').value);
