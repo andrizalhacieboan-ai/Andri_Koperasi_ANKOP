@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Login KSP ANKOP</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="card" style="max-width: 400px; margin: 50px auto;">
+            <div class="header-info">
+                <h2>KOPERASI SIMPAN PINJAM ANKOP</h2>
+                AHU: ........... NIB: ........... OJK: Terdaftar<br>
+                Alamat: Simpang SKPD, Riau | Telp: 6281934874758
+            </div>
+            <h3 style="text-align:center; margin-bottom: 20px;">Login Anggota/Admin</h3>
+            <button class="btn btn-blue" style="width:100%" onclick="loginWithGoogle()">
+                Login dengan Google
+            </button>
+            <p style="font-size: 12px; text-align: center; margin-top: 15px;">
+                * TERIMAKASIH TELAH BERGABUNG DENGAN KAMI KSP ASKOP
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = '-';
+        const SUPABASE_KEY = '-';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loginWithGoogle() {
+            await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/dashboard' }
+            });
+        }
+
+        // Cek session
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                if (session.user.email === 'andrizalhacieboan@gmail.com') {
+                    window.location.href = '/admin';
+                } else {
+                    window.location.href = '/';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
