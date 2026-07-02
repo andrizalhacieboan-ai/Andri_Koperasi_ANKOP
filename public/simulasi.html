@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulasi Pinjaman ANKOP</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="navbar"><h2>Simulasi Pinjaman 1% Flat</h2></div>
+    <div class="container">
+        <div class="card">
+            <label>Plafon Pinjaman Rp</label>
+            <input type="number" id="plafon" value="12000000">
+            <label>Tenor Bulan</label>
+            <input type="number" id="tenor" value="12">
+            <button class="btn btn-green" onclick="hitung()">Hitung</button>
+        </div>
+        <div class="card" id="hasil" style="display:none;">
+            <h3>Hasil Perhitungan</h3>
+            <p>Bunga/Bulan: Rp <span id="bunga"></span></p>
+            <p>Pokok/Bulan: Rp <span id="pokok"></span></p>
+            <h2>Total Angsuran/Bulan: Rp <span id="total"></span></h2>
+        </div>
+    </div>
+    <script>
+        function hitung() {
+            const p = parseFloat(document.getElementById('plafon').value);
+            const t = parseFloat(document.getElementById('tenor').value);
+            
+            // Rumus BAGIAN 5
+            const bunga = p * 0.01;
+            const pokok = p / t;
+            const total = pokok + bunga;
+            
+            document.getElementById('bunga').innerText = bunga.toLocaleString('id-ID');
+            document.getElementById('pokok').innerText = pokok.toLocaleString('id-ID');
+            document.getElementById('total').innerText = total.toLocaleString('id-ID');
+            document.getElementById('hasil').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
