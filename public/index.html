@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Anggota - KSP ANKOP</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <div>
+            Halo, <strong>Budi Santoso</strong> 
+            <span style="font-size:12px; background:white; color:var(--primary); padding:2px 5px; border-radius:5px; margin-left:10px; cursor:pointer;">Bantuan</span>
+        </div>
+        <button class="btn btn-red" style="padding:5px 10px;" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <!-- Baris 2: Kartu Hijau Simpanan -->
+        <div class="card" style="background:var(--primary); color:white;">
+            <h4>Total Simpanan Anda</h4>
+            <h1>Rp 3.500.000</h1>
+            <button class="btn" style="background:white; color:var(--primary); margin-top:10px;">Lihat Rincian</button>
+        </div>
+
+        <!-- Baris 3: Kartu Merah Muda Pinjaman -->
+        <div class="card" style="background:#FFC0CB; color:#8B0000;">
+            <h4>Sisa Pinjaman</h4>
+            <h1>Rp 8.800.000</h1>
+            <div style="background:white; border-radius:5px; height:10px; width:100%; margin-top:10px;">
+                <div style="background:var(--secondary); height:100%; width:27%; border-radius:5px;"></div>
+            </div>
+            <small>27% Terlunasi</small>
+        </div>
+
+        <!-- Baris 4: Menu Cepat -->
+        <div class="grid-2" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+            <button class="btn btn-green">Bayar Angsuran</button>
+            <button class="btn btn-green">Setor Tunai</button>
+            <button class="btn btn-blue">Ajukan Pinjaman</button>
+            <button class="btn btn-blue">Hubungi CS Via WA</button>
+        </div>
+
+        <!-- Baris 5: List Tagihan -->
+        <div class="card">
+            <h3>Tagihan Aktif</h3>
+            <div style="border-left: 4px solid var(--secondary); padding-left:10px; margin-top:10px;">
+                <strong>Bulan November 2025</strong><br>
+                Jatuh Tempo: 12 November 2026<br>
+                Nominal: <strong>Rp1.120.000</strong>
+                <button class="btn btn-red" style="float:right;">Bayar Sekarang</button>
+            </div>
+        </div>
+
+        <!-- Baris 6: Riwayat -->
+        <div class="card">
+            <h3>Riwayat Transaksi</h3>
+            <ul style="list-style:none; padding:0;">
+                <li style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                    <span>Setor Sukarela</span> <span style="color:green">+ Rp50.000</span>
+                </li>
+                <li style="padding:10px; display:flex; justify-content:space-between;">
+                    <span>Bayar Angsuran Okt</span> <span style="color:red">- Rp1.120.000</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
