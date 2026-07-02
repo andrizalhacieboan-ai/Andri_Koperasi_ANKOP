@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP & Aturan KSP ANKOP</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="navbar">
+        <h2>SOP & Aturan Dasar KSP ANKOP</h2>
+        <div>
+            <a href="/" class="btn btn-blue" style="padding: 5px 10px; text-decoration:none; font-size:12px;">Dashboard</a>
+            <button class="btn btn-red" style="padding: 5px 10px;" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Kontrol Admin -->
+        <div id="adminControls" class="card" style="background: #fff3cd; display:none;">
+            <h4 style="color: #856404; margin-bottom: 10px;">Mode Admin Edit/Hapus</h4>
+            <button class="btn btn-green" onclick="toggleEdit()">Edit Dokumen</button>
+            <button class="btn btn-blue" onclick="saveDoc()" style="display:none;" id="saveBtn">Simpan Perubahan</button>
+            <button class="btn btn-red" onclick="deleteDoc()">Hapus Dokumen</button>
+        </div>
+
+        <div class="card" id="doc-content" style="line-height: 1.6;">
+            <h3>BAGIAN 1: ATURAN DASAR KSP</h3>
+            <ul>
+                <li>Bunga Pinjaman : 1% Flat per Bulan dari Plafon Awal</li>
+                <li>Denda Keterlambatan : Rp10.000 per Hari</li>
+                <li>Simpanan Pokok : Rp100.000 Dibayar Sekali saat Daftar</li>
+                <li>Simpanan Wajib : Rp200.000 per Bulan Wajib</li>
+                <li>Simpanan Sukarela : Minimal Rp100.000, Setor Bebas Kapan Saja</li>
+                <li>Biaya Survey : Rp80.000 Dibayar saat Ajukan, Tidak Kembali</li>
+                <li>Jatuh Tempo Angsuran : Setiap Tanggal yang sama dengan Tanggal Cair</li>
+            </ul>
+
+            <hr style="margin: 20px 0;">
+            <h3>BAGIAN 2: SOP-01 ALUR SURVEY DAN ANALISA KREDIT</h3>
+            <p><strong>TUJUAN:</strong> Menjaga NPL dibawah 5% dan memastikan hanya anggota layak yang ACC.</p>
+            <p><strong>A. STANDAR PENILAIAN 5C DENGAN SKORING</strong></p>
+            <ul>
+                <li>Character | A=3 Baik, B=2 Cukup, C=1 Kurang, 0=Tolak</li>
+                <li>Capacity | A=3 Laba >2x Angsuran, B=2 Laba 1.5x, C=1 Laba Pas, 0=Tolak</li>
+                <li>Capital | A=3 Punya Rumah+Motor, B=2 Punya Motor, C=1 Kos, 0=Tolak</li>
+                <li>Collateral | A=3 BPKB Taksir >2x Pinjam, B=2 >1.5x, C=1 Penjamin, 0=Tolak</li>
+                <li>Condition | A=3 Usaha >2th Stabil, B=2 1-2th, C=1 <1th, 0=Tolak</li>
+            </ul>
+            <p><strong>TOTAL SKOR KEPUTUSAN:</strong><br>
+            13-15 = A = Sangat Layak, ACC 100% Plafon<br>
+            10-12 = B = Layak, ACC 80% dari Plafon Ajuan<br>
+            7-9 = C = Kurang Layak, ACC 50% dari Plafon Ajuan<br>
+            0-6 = TOLAK, Tidak bisa diproses</p>
+            
+            <p><strong>B. STEP BY STEP SAAT SURVEY LAPANGAN WAJIB 2 ORANG</strong></p>
+            <p>Langkah 1: Persiapan di Kantor. Cek berkas lengkap, cek SLIK OJK jika >10jt, buat janji dengan surat resmi.<br>
+            Langkah 2: Datang ke Lokasi. Wajib foto. (Rumah, Usaha, Jaminan BPKB atau SHM, Titik Maps GPS).<br>
+            Langkah 3: Wawancara RT atau Tetangga.<br>
+            Langkah 4: Isi Formulir Survey dan hitung skor.<br>
+            Langkah 5: Kembali ke Kantor, serahkan ke Komite Pinjaman.</p>
+
+            <p><strong>C. RED FLAG TOLAK OTOMATIS</strong><br>
+            1. Alamat KTP tidak sesuai Domisili.<br>
+            2. Nama muncul di SLIK OJK Kolom 5 Macet.<br>
+            3. Memiliki lebih dari 3 pinjaman aktif.<br>
+            4. Penjamin >60 tahun atau tidak punya penghasilan tetap.<br>
+            5. Usaha tidak ditemukan di alamat.</p>
+
+            <hr style="margin: 20px 0;">
+            <h3>BAGIAN 3: CHECKLIST DOKUMEN PENGAJUAN</h3>
+            <p>[ ] 1. Fotokopi KTP Pemohon dan Pasangan<br>
+            [ ] 2. Fotokopi Kartu Keluarga<br>
+            [ ] 3. Pas Foto Ukuran 3x4 Latar Merah = 2 Lembar<br>
+            [ ] 4. Surat Keterangan Usaha dari RT atau Slip Gaji<br>
+            [ ] 5. Jaminan Asli: BPKB atau Sertifikat SHM<br>
+            [ ] 6. Fotokopi KTP saksi 1 dan Saksi 2<br>
+            [ ] 7. Formulir Pengajuan ditandatangani diatas Materai 10000<br>
+            [ ] 8. Bukti Bayar Biaya Survey Rp80.000</p>
+
+            <hr style="margin: 20px 0;">
+            <h3>BAGIAN 4: FORMULIR LAPORAN SURVEY</h3>
+            <p>No. Formulir: FRM-SRV/ANKOP/2026</p>
+            <p>A. DATA PEMOHON (Nama, No Anggota, HP, Alamat, Pekerjaan, Lama Usaha)</p>
+            <p>B. DATA PENGAJUAN (Plafon, Tenor, Tujuan)</p>
+            <p>C. HASIL SURVEY (5C + 3P Check)</p>
+            <p>D. KESIMPULAN (Total Skor, Rekomendasi ACC/TOLAK)</p>
+
+            <hr style="margin: 20px 0;">
+            <h3>BAGIAN 5: RUMUS PERHITUNGAN KASIR</h3>
+            <p>Bunga = Plafon x 1%<br>Pokok = Plafon / Tenor<br>Total Angsuran = Pokok + Bunga<br>Denda = Rp50.000 x Hari Telat<br>NPL = (Macet >90 hari / Pinjaman Aktif) x 100%</p>
+
+            <hr style="margin: 20px 0;">
+            <h3>BAGIAN 8 & 9: ALUR KASIR & UI</h3>
+            <p>Sistem melunasi bulan tertua terlebih dahulu. Denda otomatis. Saldo Sukarela langsung update. F9 Bayar Angsuran, F10 Setor Sukarela.</p>
+
+            <hr style="margin: 20px 0;">
+            <h3>BAGIAN 11: DAFTAR BUKU ARSIP</h3>
+            <p>1. Buku Anggota, 2. Buku Pinjaman, 3. Buku Kas Harian, 4. Buku Jaminan, 5. Buku NPL.</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'URL_SUPABASE_KAMU';
+        const SUPABASE_KEY = 'ANON_KEY_SUPABASE_KAMU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isEditing = false;
+        let isAdmin = false;
+
+        async function checkUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = '/login';
+                return;
+            }
+            if (session.user.email === 'andrizalhacieboan@gmail.com') {
+                isAdmin = true;
+                document.getElementById('adminControls').style.display = 'block';
+            }
+        }
+
+        function toggleEdit() {
+            isEditing = !isEditing;
+            const content = document.getElementById('doc-content');
+            const saveBtn = document.getElementById('saveBtn');
+            if (isEditing) {
+                content.setAttribute('contenteditable', 'true');
+                content.style.border = '2px dashed #00A859';
+                content.style.padding = '15px';
+                saveBtn.style.display = 'inline-block';
+            } else {
+                content.removeAttribute('contenteditable');
+                content.style.border = 'none';
+                saveBtn.style.display = 'none';
+            }
+        }
+
+        async function saveDoc() {
+            const content = document.getElementById('doc-content').innerHTML;
+            // Di implementasi nyata, kirim content ke Supabase API
+            alert('Dokumen SOP berhasil disimpan ke database (Simulasi)!');
+            toggleEdit();
+        }
+
+        async function deleteDoc() {
+            if (confirm('Apakah Anda yakin ingin menghapus seluruh konten dokumen ini?')) {
+                document.getElementById('doc-content').innerHTML = '<p>Dokumen telah dihapus oleh Admin.</p>';
+                alert('Dokumen dihapus (Simulasi)!');
+            }
+        }
+
+        function logout() {
+            supabase.auth.signOut();
+            window.location.href = '/login';
+        }
+
+        checkUser();
+    </script>
+</body>
+</html>
