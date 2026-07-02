@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Kasir - KSP ANKOP</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="navbar">
+        <h2>KSP ANKOP - Panel Kasir Admin</h2>
+        <button class="btn btn-red" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <div class="grid-2">
+            <!-- MENU F9: BAYAR ANGSURAN -->
+            <div class="card">
+                <h3 style="color: var(--primary)">BAYAR ANGSURAN PINJAMAN</h3>
+                <hr>
+                <label>Cari Anggota No HP/Nama</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="searchMember" placeholder="Tekan F1 untuk cari...">
+                    <button class="btn btn-green">Cari</button>
+                </div>
+                <div style="margin-top:15px;">
+                    <h4>Tagihan Belum Bayar</h4>
+                    <div style="border:1px solid #ccc; height:100px; padding:10px; overflow-y:auto;">
+                        <input type="checkbox"> Oktober 2026 - Rp1.120.000 (Jatuh tempo: 23 November)
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Rincian Pembayaran</h3>
+                <hr>
+                <p>Pokok: Rp1.000.000</p>
+                <p>Bunga (1%): Rp120.000</p>
+                <p>Denda: <span style="color:red">Rp0</span></p>
+                <h2 style="margin-top:10px; color:var(--dark)">Total: Rp1.120.000</h2>
+                <input type="number" placeholder="Uang Bayar">
+                <button class="btn btn-green" style="width:100%; margin-top:10px;">SIMPAN & CETAK</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3 style="color: var(--primary)">SETOR SIMPANAN SUKARELA</h3>
+            <hr>
+            <div class="grid-2">
+                <div>
+                    <label>Cari Anggota</label>
+                    <input type="text" placeholder="No HP / Nama">
+                    <p>Saldo Lama: Rp0</p>
+                </div>
+                <div>
+                    <label>Nominal Setor Rp100.000</label>
+                    <input type="number" placeholder="Rp...">
+                    <select>
+                        <option>Tunai</option>
+                        <option>Transfer</option>
+                    </select>
+                    <button class="btn btn-blue" style="width:100%">KONFIRMASI SETOR</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cek Admin Security di Frontend
+        const userEmail = localStorage.getItem('user_email');
+        if(userEmail !== 'andrizalhacieboan@gmail.com') {
+            alert('Akses Ditolak! Anda bukan Admin.');
+            window.location.href = '/login';
+        }
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
