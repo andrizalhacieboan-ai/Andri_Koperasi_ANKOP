@@ -71,7 +71,5 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 app.get('/simulasi', (req, res) => res.sendFile(path.join(__dirname, 'public', 'simulasi.html')));
 app.get('/sop', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sop.html')));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server KSP ANKOP running on ${PORT}`));
-
+// HANYA INI YANG ADA DI BAWAH, HAPUS app.listen()
 module.exports = app;
