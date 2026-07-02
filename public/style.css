@@ -1,0 +1,223 @@
+:root {
+  /* === MD3 COLOR SYSTEM - KOPERASI ASUMA (LIGHT MODE) === */
+  --md-sys-color-primary: #00A859; /* Hijau Koperasi = Aksen Utama */
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-secondary: #E63946; /* Merah Muda Pinjaman = Aksen Bahaya */
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-surface: #FFFFFF;
+  --md-sys-color-surface-variant: #F4F4F4; /* Background */
+  --md-sys-color-on-surface: #1C1B1F; /* Text Gelap MD3 */
+  --md-sys-color-on-surface-variant: #49454F; /* Text Sekunder */
+  --md-sys-color-outline: #79747E; /* Border */
+  --md-sys-color-outline-variant: #CAC4D0; /* Border Tipis */
+
+  /* === MD3 SHAPE / ELEVASI === */
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 16px;
+  --md-sys-shape-corner-large: 24px;
+  --md-sys-elevation-1: 0px 1px 2px rgba(0,0,0,0.15), 0px 1px 3px rgba(0,0,0,0.1);
+  --md-sys-elevation-2: 0px 1px 3px rgba(0,0,0,0.15), 0px 2px 6px rgba(0,0,0,0.1);
+  
+  /* === VARIABEL LAMA BIAR GAK RUSAK FUNGSI === */
+  --primary: var(--md-sys-color-primary);
+  --secondary: var(--md-sys-color-secondary);
+  --dark: var(--md-sys-color-on-surface);
+  --light: var(--md-sys-color-surface-variant);
+}
+
+/* === MD3 DARK MODE OVERRIDES === */
+body.dark-mode {
+  --md-sys-color-primary: #7ADF9B; /* Hijau terang di dark mode */
+  --md-sys-color-on-primary: #003D21;
+  --md-sys-color-secondary: #FFB4AB; /* Merah terang di dark mode */
+  --md-sys-color-on-secondary: #690005;
+  --md-sys-color-surface: #1C1B1F; /* Background Card jadi gelap */
+  --md-sys-color-surface-variant: #2C2C2C; /* Background Body jadi gelap */
+  --md-sys-color-on-surface: #E6E1E5; /* Text jadi terang */
+  --md-sys-color-on-surface-variant: #CAC4D0;
+  --md-sys-color-outline: #938F99;
+  --md-sys-color-outline-variant: #49454F;
+  
+  /* Elevasi gelap menggunakan transparansi putih */
+  --md-sys-elevation-1: 0px 1px 2px rgba(255,255,255,0.1), 0px 1px 3px rgba(255,255,255,0.05);
+  --md-sys-elevation-2: 0px 1px 3px rgba(255,255,255,0.1), 0px 2px 6px rgba(255,255,255,0.05);
+}
+
+/* === BASE === */
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  font-family: 'Segoe UI', 'Roboto', sans-serif; /* MD3 = Roboto */
+}
+body { 
+  background: var(--light); 
+  color: var(--dark); 
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* === NAVBAR = MD3 TOP APP BAR === */
+.navbar { 
+  background: var(--primary); 
+  color: var(--md-sys-color-on-primary); 
+  padding: 16px 24px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+  box-shadow: var(--md-sys-elevation-2); /* Elevasi jelas */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-weight: 600;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+/* === CONTAINER === */
+.container { 
+  max-width: 1000px; 
+  margin: 24px auto; 
+  padding: 0 24px; 
+}
+
+/* === CARD = MD3 ELEVATED CARD === */
+.card { 
+  background: var(--md-sys-color-surface); 
+  padding: 24px; 
+  border-radius: var(--md-sys-shape-corner-large); /* Corner 24px = MD3 */
+  box-shadow: var(--md-sys-elevation-1); /* Shadow lembut */
+  margin-bottom: 24px; 
+  transition: box-shadow 0.2s ease-in-out, background 0.3s ease;
+}
+.card:hover {
+  box-shadow: var(--md-sys-elevation-2); /* Naik pas hover */
+}
+
+/* === GRID TETAP SAMA === */
+.grid-2 { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 24px; 
+}
+
+/* === BUTTON = MD3 FILLED BUTTON === */
+.btn { 
+  padding: 12px 24px; 
+  border: none; 
+  border-radius: 100px; /* Pill Shape = MD3 */
+  cursor: pointer; 
+  color: white; 
+  font-weight: 500; 
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  transition: box-shadow 0.2s;
+}
+.btn:hover {
+  box-shadow: var(--md-sys-elevation-1);
+}
+.btn:active {
+  box-shadow: none;
+}
+.btn-green { background: var(--primary); color: var(--md-sys-color-on-primary); }
+.btn-red { background: var(--secondary); color: var(--md-sys-color-on-secondary); }
+.btn-blue { background: #007BFF; color: white; }
+
+/* === INPUT = MD3 OUTLINED TEXT FIELD === */
+input, select { 
+  width: 100%; 
+  padding: 16px; 
+  margin-bottom: 16px; 
+  border: 1px solid var(--md-sys-color-outline); 
+  border-radius: var(--md-sys-shape-corner-small); /* Corner 8px */
+  background: var(--md-sys-color-surface);
+  font-size: 14px;
+  color: var(--dark);
+  transition: border-color 0.2s, background 0.3s;
+}
+input:focus, select:focus {
+  outline: none;
+  border: 2px solid var(--primary); /* Aksen pas focus */
+  padding: 15px; /* Kompensasi border 2px */
+}
+
+/* === HEADER INFO === */
+.header-info { 
+  font-size: 12px; 
+  text-align: center; 
+  margin-bottom: 24px; 
+  color: var(--md-sys-color-on-surface-variant); 
+  border-bottom: 1px solid var(--md-sys-color-outline-variant); 
+  padding-bottom: 16px; 
+}
+
+/* ==========================================
+   === DARK MODE TOGGLE SLIDING LINGKARAN ===
+   ========================================== */
+.theme-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 15px;
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #2C2C2C; /* Warna track saat light mode (gelap agar terlihat) */
+  transition: .4s;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+}
+
+/* Ikon di dalam track (hidden by default based on state) */
+.slider .icon-sun, .slider .icon-moon {
+  font-size: 14px;
+  transition: opacity 0.3s;
+}
+.slider .icon-sun { color: #FFD700; opacity: 1; }
+.slider .icon-moon { color: #E6E1E5; opacity: 0; }
+
+/* Lingkaran geser */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* State saat di klik (Dark Mode Aktif) */
+body.dark-mode .slider {
+  background-color: #F4F4F4; /* Track jadi terah saat dark mode */
+}
+body.dark-mode .slider .icon-sun { opacity: 0; }
+body.dark-mode .slider .icon-moon { opacity: 1; }
+
+body.dark-mode .slider:before {
+  transform: translateX(30px);
+  background-color: #1C1B1F; /* Lingkaran jadi gelap saat dark mode */
+}
