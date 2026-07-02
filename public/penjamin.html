@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Pernyataan Saksi - KSP ANKOP</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="navbar">
+        <h2>Surat Pernyataan SAKSI</h2>
+        <div>
+            <a href="/" class="btn btn-blue" style="padding: 5px 10px; text-decoration:none; font-size:12px;">Dashboard</a>
+            <button class="btn btn-red" style="padding: 5px 10px;" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="adminControls" class="card" style="background: #fff3cd; display:none;">
+            <h4 style="color: #856404; margin-bottom: 10px;">Mode Admin Edit/Hapus</h4>
+            <button class="btn btn-green" onclick="toggleEdit()">Edit Dokumen</button>
+            <button class="btn btn-blue" onclick="saveDoc()" style="display:none;" id="saveBtn">Simpan Perubahan</button>
+            <button class="btn btn-red" onclick="deleteDoc()">Hapus Dokumen</button>
+        </div>
+
+        <div class="card" id="doc-content" style="line-height: 1.6; font-family: 'Times New Roman', serif;">
+            <h3 style="text-align: center; text-decoration: underline;">SURAT PERNYATAAN KESEDIAAN MENJADI SAKSI</h3>
+            <p style="text-align: center;">NOMOR: SPJ/ANKOP/1506/2026</p><br>
+
+            <p>Yang bertanda tangan di bawah ini:</p>
+            <p>Nama : ....................................<br>
+            No. KTP : ....................................<br>
+            Alamat : ....................................<br>
+            Pekerjaan : ....................................</p><br>
+
+            <p>Dengan ini menyatakan:</p>
+            <p>Saya bersedia menjadi <strong>SAKSI</strong> dari:</p>
+            <p>Nama Peminjam : ....................................<br>
+            No. Perjanjian Pinjaman : PP/ANKOP/XXX/2025<br>
+            Plafon Pinjaman : Rp...........................</p><br>
+
+            <p>Saya menyatakan sanggup dan bertanggung jawab penuh untuk melunasi seluruh sisa pinjaman beserta bunga dan denda, apabila Peminjam tidak mampu atau lalai dalam membayar.</p><br>
+
+            <p>Saya lampirkan: Fotokopi KTP, Kartu Keluarga, Slip Gaji sebagai bukti mampu menjamin.</p><br>
+
+            <p>Demikian surat pernyataan ini saya buat dengan sadar, tanpa paksaan.</p><br>
+            <p>Kotatengah, 12 November 2026</p><br>
+
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <p>Yang Menyatakan</p><br><br><br>
+                    <p>Peminjam</p>
+                    <p>(.......................)</p>
+                    <p><em>Meterai 10.000</em></p>
+                </div>
+                <div>
+                    <p>Mengetahui</p><br><br><br>
+                    <p>Saksi 1 / Saksi 2</p>
+                    <p>(.......................)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script keamanan identik dengan halaman sebelumnya
+        const SUPABASE_URL = 'URL_SUPABASE_KAMU';
+        const SUPABASE_KEY = 'ANON_KEY_SUPABASE_KAMU';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let isEditing = false;
+
+        async function checkUser() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) window.location.href = '/login';
+            if (session.user.email === 'andrizalhacieboan@gmail.com') {
+                document.getElementById('adminControls').style.display = 'block';
+            }
+        }
+
+        function toggleEdit() {
+            isEditing = !isEditing;
+            const content = document.getElementById('doc-content');
+            const saveBtn = document.getElementById('saveBtn');
+            if (isEditing) {
+                content.setAttribute('contenteditable', 'true');
+                content.style.border = '2px dashed #00A859';
+                content.style.padding = '15px';
+                saveBtn.style.display = 'inline-block';
+            } else {
+                content.removeAttribute('contenteditable');
+                content.style.border = 'none';
+                saveBtn.style.display = 'none';
+            }
+        }
+
+        async function saveDoc() { alert('Surat Penjamin disimpan!'); toggleEdit(); }
+        async function deleteDoc() { if (confirm('Hapus dokumen?')) document.getElementById('doc-content').innerHTML = '<p>Dihapus Admin.</p>'; }
+        function logout() { supabase.auth.signOut(); window.location.href = '/login'; }
+
+        checkUser();
+    </script>
+</body>
+</html>
