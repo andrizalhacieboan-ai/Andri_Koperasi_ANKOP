@@ -2,33 +2,104 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login KSP ANKOP</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/magic-nav.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- NAVBAR ATAS (Hanya untuk Toggle Dark Mode) -->
+    <div class="navbar" style="justify-content: flex-end;">
+        <div class="theme-toggle-wrapper">
+            <label class="theme-toggle">
+                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                <span class="slider">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </span>
+            </label>
+        </div>
+    </div>
+
     <div class="container">
         <div class="card" style="max-width: 400px; margin: 50px auto;">
             <div class="header-info">
                 <h2>KOPERASI SIMPAN PINJAM ANKOP</h2>
                 AHU: ........... NIB: ........... OJK: Terdaftar<br>
-                Alamat: Simpang SKPD, Riau | Telp: 6281934874758
+                Alamat: Simpang SKPF, Riau | Telp: 6281934874758
             </div>
             <h3 style="text-align:center; margin-bottom: 20px;">Login Anggota/Admin</h3>
-            <button class="btn btn-blue" style="width:100%" onclick="loginWithGoogle()">
-                Login dengan Google
+            
+            <button class="btn btn-blue" style="width:100%; opacity: 0.6; cursor: not-allowed;" id="loginBtn" disabled onclick="loginWithGoogle()">
+                Memuat Server...
             </button>
+            
             <p style="font-size: 12px; text-align: center; margin-top: 15px;">
-                * TERIMAKASIH TELAH BERGABUNG DENGAN KAMI KSP ASKOP
+                * TERIMAKASIH TELAH BERGABUNG DENGAN KAMI KSP ANKOP
             </p>
         </div>
     </div>
 
-    <script>
-        const SUPABASE_URL = '-';
-        const SUPABASE_KEY = '-';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- MAGIC NAVBAR BAWAH -->
+    <div class="magic-nav-wrapper">
+      <nav class="magic-navigation">
+        <ul><!-- Menu dirender otomatis oleh magic-nav.js --></ul>
+      </nav>
+    </div>
 
+    <script>
+        let supabase = null;
+
+        // === KONFIGURASI SUPABASE VIA BACKEND (AMAN) ===
+        async function initializeSupabase() {
+            try {
+                const response = await fetch('/api/env-config');
+                const config = await response.json();
+                
+                if (!config.supabaseUrl || !config.supabaseKey) {
+                    document.getElementById('loginBtn').innerText = "Error: Server tidak terhubung";
+                    return;
+                }
+
+                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+                
+                // Aktifkan tombol login setelah Supabase siap
+                const btn = document.getElementById('loginBtn');
+                btn.innerText = "Login dengan Google";
+                btn.style.opacity = "1";
+                btn.style.cursor = "pointer";
+                btn.disabled = false;
+
+                // Listener jika status login berubah (misal setelah redirect Google)
+                supabase.auth.onAuthStateChange((event, session) => {
+                    if (session) {
+                        if (session.user.email === 'andrizalhacieboan@gmail.com') {
+                            window.location.href = '/admin';
+                        } else {
+                            window.location.href = '/';
+                        }
+                    }
+                });
+
+                // Cek sesi yang sudah ada (Jika user sudah login tapi buka /login lagi)
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    if (session.user.email === 'andrizalhacieboan@gmail.com') {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error initializing Supabase:", error);
+                document.getElementById('loginBtn').innerText = "Gagal Memuat";
+            }
+        }
+
+        // === SCRIPT DARK MODE ===
         function applyDarkModePreference() {
             const isDarkMode = localStorage.getItem('darkMode') === 'true';
             if (isDarkMode) {
@@ -44,23 +115,20 @@
         }
         applyDarkModePreference();
 
+        // === FUNGSI LOGIN GOOGLE ===
         async function loginWithGoogle() {
+            if (!supabase) return alert("Sistem masih memuat, coba lagi dalam 2 detik.");
+            
             await supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: window.location.origin + '/dashboard' }
+                options: { 
+                    redirectTo: window.location.origin // Redirect ke halaman utama, akan dicek oleh script di atas
+                }
             });
         }
 
-        // Cek session
-        supabase.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                if (session.user.email === 'andrizalhacieboan@gmail.com') {
-                    window.location.href = '/admin';
-                } else {
-                    window.location.href = '/';
-                }
-            }
-        });
+        // Jalankan inisialisasi saat halaman dibuka
+        initializeSupabase();
     </script>
 </body>
 </html>
