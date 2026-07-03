@@ -70,6 +70,12 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'log
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/simulasi', (req, res) => res.sendFile(path.join(__dirname, 'public', 'simulasi.html')));
 app.get('/sop', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sop.html')));
-
+// API untuk mengirim config Supabase ke Frontend secara aman
+app.get('/api/env-config', (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL,
+    supabaseKey: process.env.SUPABASE_ANON_KEY
+  });
+});
 // HANYA INI YANG ADA DI BAWAH, HAPUS app.listen()
 module.exports = app;
