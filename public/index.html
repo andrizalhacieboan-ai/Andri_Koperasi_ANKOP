@@ -30,7 +30,6 @@
                     </span>
                 </label>
             </div>
-
             <button class="btn btn-red" style="padding: 5px 10px; margin-left: 15px;" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -56,8 +55,8 @@
 
         <!-- Baris 4: Menu Cepat -->
         <div class="grid-2" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
-            <button class="btn btn-green" onclick="window.location.href='/simulasi.html'">Bayar Angsuran</button>
-            <button class="btn btn-green" onclick="alert('Halaman Setor Tunai')">Setor Tunai</button>
+            <button class="btn btn-green" onclick="alert('Silakan hubungi Kasir/Admin untuk pembayaran angsuran cepat.')">Bayar Angsuran</button>
+            <button class="btn btn-green" onclick="alert('Silakan hubungi Kasir/Admin untuk setoran tunai.')">Setor Tunai</button>
             <button class="btn btn-blue" onclick="window.location.href='/simulasi.html'">Ajukan Pinjaman</button>
             <button class="btn btn-blue" onclick="hubungiCS()">Hubungi CS</button>
         </div>
@@ -65,24 +64,16 @@
         <!-- Baris 5: List Tagihan -->
         <div class="card">
             <h3>Tagihan Aktif</h3>
-            <div style="border-left: 4px solid var(--secondary); padding-left:10px; margin-top:10px;">
-                <strong>Bulan November 2025</strong><br>
-                Jatuh Tempo: 12 November 2025<br>
-                Nominal: <strong>Rp1.120.000</strong>
-                <button class="btn btn-red" style="float:right;" onclick="bayarSekarang()">Bayar Sekarang</button>
+            <div id="tagihanAktifContainer" style="border-left: 4px solid var(--secondary); padding-left:10px; margin-top:10px;">
+                <p style="color: var(--md-sys-color-on-surface-variant);">Memuat tagihan...</p>
             </div>
         </div>
 
         <!-- Baris 6: Riwayat -->
         <div class="card">
             <h3>Riwayat Transaksi</h3>
-            <ul style="list-style:none; padding:0;">
-                <li style="padding:10px; border-bottom:1px solid var(--md-sys-color-outline-variant); display:flex; justify-content:space-between;">
-                    <span>Setor Sukarela</span> <span style="color:green">+ Rp50.000</span>
-                </li>
-                <li style="padding:10px; display:flex; justify-content:space-between;">
-                    <span>Bayar Angsuran Okt</span> <span style="color:red">- Rp1.120.000</span>
-                </li>
+            <ul id="riwayatList" style="list-style:none; padding:0;">
+                <li style="padding:10px; color: var(--md-sys-color-on-surface-variant);">Memuat riwayat transaksi...</li>
             </ul>
         </div>
     </div>
@@ -97,23 +88,17 @@
     <script>
         // === KONFIGURASI SUPABASE VIA BACKEND (AMAN) ===
         let supabase = null;
+        let currentUser = null;
+        let currentTagihan = null;
 
         async function initializeSupabase() {
             try {
-                // Ambil config dari server.js yang membaca process.env Vercel
                 const response = await fetch('/api/env-config');
                 const config = await response.json();
-                
-                if (!config.supabaseUrl || !config.supabaseKey) {
-                    console.error("Gagal mengambil config dari server.");
-                    return;
-                }
+                if (!config.supabaseUrl || !config.supabaseKey) return;
 
                 supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
-                
-                // Setelah Supabase siap, load data user
                 await loadUserData();
-
             } catch (error) {
                 console.error("Error initializing Supabase:", error);
             }
@@ -146,19 +131,9 @@
             window.open('https://wa.me/6281934874758?text=Halo%20Admin%20ANKOP,%20saya%20butuh%20bantuan', '_blank');
         }
 
-        function bayarSekarang() {
-            const yakin = confirm("Anda akan membayar tagihan Rp1.120.000. Lanjutkan?");
-            if (yakin) {
-                alert("Pembayaran berhasil diproses (Simulasi Kasir).");
-                document.getElementById("progressBar").style.width = "40%";
-                document.getElementById("progressText").innerText = "40% Terlunasi";
-            }
-        }
-
-        // === CEK LOGIN & AMBIL DATA ===
+        // === CEK LOGIN & AMBIL DATA REAL-TIME ===
         async function loadUserData() {
             if (!supabase) return;
-
             const { data: { session }, error } = await supabase.auth.getSession();
             
             if (!session) {
@@ -166,21 +141,171 @@
                 return;
             }
 
-            // Tampilkan email/nama pengguna
-            const email = session.user.email;
+            currentUser = session.user;
+            const email = currentUser.email;
             document.getElementById('userName').innerText = email.split('@')[0];
             
-            // Cek jika admin yang login, tendang ke /admin
             if (email === 'andrizalhacieboan@gmail.com') {
                 window.location.href = '/admin';
             }
 
-            // === AMBIL DATA DARI DATABASE ===
-            const { data: simpanan } = await supabase.from('simpanan').select('jumlah').eq('user_id', session.user.id);
-            if (simpanan && simpanan.length > 0) {
-                const total = simpanan.reduce((sum, item) => sum + item.jumlah, 0);
+            // Jalankan semua fungsi pengambilan data
+            await loadTotalSimpanan();
+            await loadPinjamanAktif();
+            await loadTagihanAktif();
+            await loadRiwayatTransaksi();
+        }
+
+        // 1. AMBIL TOTAL SIMPANAN
+        async function loadTotalSimpanan() {
+            const { data, error } = await supabase
+                .from('simpanan')
+                .select('jumlah')
+                .eq('user_id', currentUser.id);
+                
+            if (data && data.length > 0) {
+                const total = data.reduce((sum, item) => sum + item.jumlah, 0);
                 document.getElementById('totalSimpanan').innerText = 'Rp ' + total.toLocaleString('id-ID');
+            } else {
+                document.getElementById('totalSimpanan').innerText = 'Rp 0';
             }
+        }
+
+        // 2. AMBIL PINJAMAN AKTIF & HITUNG PROGRESS
+        async function loadPinjamanAktif() {
+            const { data, error } = await supabase
+                .from('pinjaman')
+                .select('id, plafon, tenor, status')
+                .eq('user_id', currentUser.id)
+                .eq('status', 'aktif')
+                .maybeSingle(); // Ambil 1 pinjaman aktif saja
+
+            if (data) {
+                // Hitung total angsuran pokok per bulan
+                const pokokPerBulan = data.plafon / data.tenor;
+                
+                // Hitung berapa bulan yang sudah lunas
+                const { data: lunasData } = await supabase
+                    .from('angsuran')
+                    .select('id')
+                    .eq('pinjaman_id', data.id)
+                    .eq('status', 'lunas');
+                
+                const bulanLunas = lunasData ? lunasData.length : 0;
+                const sisaBulan = data.tenor - bulanLunas;
+                const sisaPinjaman = sisaBulan * pokokPerBulan;
+                const progress = (bulanLunas / data.tenor) * 100;
+
+                document.getElementById('sisaPinjaman').innerText = 'Rp ' + sisaPinjaman.toLocaleString('id-ID');
+                document.getElementById('progressBar').style.width = progress + "%";
+                document.getElementById('progressText').innerText = progress.toFixed(0) + "% Terlunasi";
+            } else {
+                document.getElementById('sisaPinjaman').innerText = 'Rp 0';
+                document.getElementById('progressText').innerText = 'Tidak ada pinjaman aktif';
+            }
+        }
+
+        // 3. AMBIL TAGIHAN BULAN INI YANG BELUM DIBAYAR
+        async function loadTagihanAktif() {
+            const { data: pinjaman } = await supabase
+                .from('pinjaman')
+                .select('id, plafon, tenor')
+                .eq('user_id', currentUser.id)
+                .eq('status', 'aktif')
+                .maybeSingle();
+
+            const container = document.getElementById('tagihanAktifContainer');
+
+            if (!pinjaman) {
+                container.innerHTML = '<p style="color: green;">Tidak ada tagihan aktif. Lunas!</p>';
+                return;
+            }
+
+            // Ambil 1 tagihan paling lama yang belum dibayar
+            const { data: tagihan } = await supabase
+                .from('angsuran')
+                .select('id, bulan_ke, jatuh_tempo')
+                .eq('pinjaman_id', pinjaman.id)
+                .eq('status', 'belum_bayar')
+                .order('bulan_ke', { ascending: true })
+                .limit(1)
+                .maybeSingle();
+
+            if (tagihan) {
+                currentTagihan = { ...tagihan, plafon: pinjaman.plafon, tenor: pinjaman.tenor };
+                const pokok = pinjaman.plafon / pinjaman.tenor;
+                const bunga = pinjaman.plafon * 0.01;
+                const total = pokok + bunga;
+                const jatuhTempo = new Date(tagihan.jatuh_tempo).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+
+                container.innerHTML = `
+                    <strong>Bulan ke-${tagihan.bulan_ke}</strong><br>
+                    Jatuh Tempo: ${jatuhTempo}<br>
+                    Nominal: <strong>Rp ${total.toLocaleString('id-ID')}</strong>
+                    <button class="btn btn-red" style="float:right;" onclick="bayarSekarang()">Bayar Sekarang</button>
+                `;
+            } else {
+                container.innerHTML = '<p style="color: green;">Semua tagihan lunas!</p>';
+            }
+        }
+
+        // FUNGSI BAYAR LANGSUNG DARI DASHBOARD (REAL-TIME)
+        async function bayarSekarang() {
+            if (!currentTagihan) return alert("Tidak ada tagihan yang dipilih.");
+
+            const yakin = confirm(`Anda akan membayar tagihan Bulan ke-${currentTagihan.bulan_ke}. Lanjutkan?`);
+            if (!yakin) return;
+
+            // Update database angsuran menjadi lunas
+            const { error } = await supabase
+                .from('angsuran')
+                .update({ 
+                    status: 'lunas', 
+                    tanggal_bayar: new Date().toISOString(),
+                    denda: 0 // Anggap dibayar tepat waktu jika dari dashboard
+                })
+                .eq('id', currentTagihan.id);
+
+            if (error) {
+                alert("Gagal memproses pembayaran: " + error.message);
+            } else {
+                alert("Pembayaran Berhasil!");
+                // Refresh semua data di dashboard
+                await loadPinjamanAktif();
+                await loadTagihanAktif();
+                await loadRiwayatTransaksi();
+            }
+        }
+
+        // 4. AMBIL RIWAYAT TRANSAKSI (5 TERAKHIR)
+        async function loadRiwayatTransaksi() {
+            const listEl = document.getElementById('riwayatList');
+            listEl.innerHTML = '<li style="padding:10px;">Memuat...</li>';
+
+            // Ambil 5 setoran terakhir
+            const { data: setoran } = await supabase
+                .from('simpanan')
+                .select('jumlah, jenis_simpanan, tanggal')
+                .eq('user_id', currentUser.id)
+                .order('tanggal', { ascending: false })
+                .limit(5);
+
+            let html = '';
+            if (setoran && setoran.length > 0) {
+                setoran.forEach(item => {
+                    const date = new Date(item.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                    html += `
+                        <li style="padding:10px; border-bottom:1px solid var(--md-sys-color-outline-variant); display:flex; justify-content:space-between;">
+                            <span>Setor ${item.jenis_simpanan} (${date})</span> 
+                            <span style="color:green">+ Rp ${item.jumlah.toLocaleString('id-ID')}</span>
+                        </li>
+                    `;
+                });
+            } else {
+                html = '<li style="padding:10px; color: var(--md-sys-color-on-surface-variant);">Belum ada riwayat transaksi.</li>';
+            }
+
+            listEl.innerHTML = html;
         }
 
         // Jalankan inisialisasi saat halaman dibuka
