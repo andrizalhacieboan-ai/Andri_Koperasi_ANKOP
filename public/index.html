@@ -95,10 +95,29 @@
     </div>
 
     <script>
-        // === KONFIGURASI SUPABASE ===
-        const SUPABASE_URL = 'URL_SUPABASE_KAMU'; // Ganti dengan URL Anda
-        const SUPABASE_KEY = 'ANON_KEY_SUPABASE_KAMU'; // Ganti dengan Key Anda
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // === KONFIGURASI SUPABASE VIA BACKEND (AMAN) ===
+        let supabase = null;
+
+        async function initializeSupabase() {
+            try {
+                // Ambil config dari server.js yang membaca process.env Vercel
+                const response = await fetch('/api/env-config');
+                const config = await response.json();
+                
+                if (!config.supabaseUrl || !config.supabaseKey) {
+                    console.error("Gagal mengambil config dari server.");
+                    return;
+                }
+
+                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+                
+                // Setelah Supabase siap, load data user
+                await loadUserData();
+
+            } catch (error) {
+                console.error("Error initializing Supabase:", error);
+            }
+        }
 
         // === SCRIPT DARK MODE ===
         function applyDarkModePreference() {
@@ -118,13 +137,12 @@
 
         // === FUNGSI AKSI TOMBOL ===
         function logout() {
-            supabase.auth.signOut();
+            if (supabase) supabase.auth.signOut();
             localStorage.clear();
             window.location.href = '/login';
         }
 
         function hubungiCS() {
-            // Nomor CS dari SOP: 6281934874758
             window.open('https://wa.me/6281934874758?text=Halo%20Admin%20ANKOP,%20saya%20butuh%20bantuan', '_blank');
         }
 
@@ -132,7 +150,6 @@
             const yakin = confirm("Anda akan membayar tagihan Rp1.120.000. Lanjutkan?");
             if (yakin) {
                 alert("Pembayaran berhasil diproses (Simulasi Kasir).");
-                // Update UI secara lokal
                 document.getElementById("progressBar").style.width = "40%";
                 document.getElementById("progressText").innerText = "40% Terlunasi";
             }
@@ -140,6 +157,8 @@
 
         // === CEK LOGIN & AMBIL DATA ===
         async function loadUserData() {
+            if (!supabase) return;
+
             const { data: { session }, error } = await supabase.auth.getSession();
             
             if (!session) {
@@ -149,26 +168,23 @@
 
             // Tampilkan email/nama pengguna
             const email = session.user.email;
-            document.getElementById('userName').innerText = email.split('@')[0]; // Ambil nama depan email
+            document.getElementById('userName').innerText = email.split('@')[0];
             
             // Cek jika admin yang login, tendang ke /admin
             if (email === 'andrizalhacieboan@gmail.com') {
                 window.location.href = '/admin';
             }
 
-            // === AMBIL DATA DARI DATABASE (CONTOH) ===
-            // Anda bisa aktifkan ini jika tabel di Supabase sudah berisi data
-            
+            // === AMBIL DATA DARI DATABASE ===
             const { data: simpanan } = await supabase.from('simpanan').select('jumlah').eq('user_id', session.user.id);
             if (simpanan && simpanan.length > 0) {
                 const total = simpanan.reduce((sum, item) => sum + item.jumlah, 0);
                 document.getElementById('totalSimpanan').innerText = 'Rp ' + total.toLocaleString('id-ID');
             }
-            
         }
 
-        // Panggil saat halaman dibuka
-        loadUserData();
+        // Jalankan inisialisasi saat halaman dibuka
+        initializeSupabase();
     </script>
 </body>
 </html>
