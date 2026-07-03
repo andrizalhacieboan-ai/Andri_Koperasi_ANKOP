@@ -4,30 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Anggota - KSP ANKOP</title>
-    <!-- CSS Utama & FontAwesome untuk Ikon Navbar -->
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Script Navbar & Supabase -->
     <script src="/magic-nav.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* CSS Tambahan untuk Merapikan UI */
+        .quick-menu { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .quick-menu button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 15px 10px; font-size: 12px; }
+        .quick-menu i { font-size: 20px; }
+        .tagihan-card { border-left: 4px solid var(--secondary); padding: 15px; margin-top: 10px; background: var(--md-sys-color-surface-variant); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: var(--md-sys-color-surface); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: var(--md-sys-elevation-2); }
+        .close-btn { float: right; cursor: pointer; font-size: 24px; color: var(--md-sys-color-on-surface-variant); }
+    </style>
 </head>
 <body>
     <!-- NAVBAR ATAS -->
     <div class="navbar">
         <div>
-            Halo, <strong id="userName">Peminjam</strong> 
-            <span style="font-size:12px; background:white; color:var(--primary); padding:2px 5px; border-radius:5px; margin-left:10px; cursor:pointer;" onclick="hubungiCS()">Bantuan</span>
+            Halo, <strong id="userName">Anggota</strong>
         </div>
-        
         <div style="display: flex; align-items: center;">
-            <!-- TOGGLE DARK MODE -->
             <div class="theme-toggle-wrapper">
                 <label class="theme-toggle">
                     <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-                    <span class="slider">
-                        <span class="icon-sun">☀️</span>
-                        <span class="icon-moon">🌙</span>
-                    </span>
+                    <span class="slider"><span class="icon-sun">☀️</span><span class="icon-moon">🌙</span></span>
                 </label>
             </div>
             <button class="btn btn-red" style="padding: 5px 10px; margin-left: 15px;" onclick="logout()">Logout</button>
@@ -36,94 +38,104 @@
 
     <!-- KONTEN DASHBOARD -->
     <div class="container">
-        <!-- Baris 2: Kartu Hijau Simpanan -->
-        <div class="card" style="background:var(--primary); color:white;">
-            <h4>Total Simpanan Anda</h4>
-            <h1 id="totalSimpanan">Rp 0</h1>
-            <button class="btn" style="background:white; color:var(--primary); margin-top:10px;" onclick="alert('Fitur rincian simpanan sedang dalam pengembangan.')">Lihat Rincian</button>
-        </div>
-
-        <!-- Baris 3: Kartu Merah Muda Pinjaman -->
-        <div class="card" style="background:#FFC0CB; color:#8B0000;">
-            <h4>Sisa Pinjaman</h4>
-            <h1 id="sisaPinjaman">Rp 0</h1>
-            <div style="background:white; border-radius:5px; height:10px; width:100%; margin-top:10px;">
-                <div id="progressBar" style="background:var(--secondary); height:100%; width:0%; border-radius:5px; transition: width 0.5s;"></div>
+        <!-- Kartu Simpanan & Pinjaman -->
+        <div class="grid-2" style="margin-bottom: 20px;">
+            <div class="card" style="background:var(--primary); color:white; margin:0;">
+                <h4>Total Simpanan Anda</h4>
+                <h1 id="totalSimpanan" style="font-size: 28px; margin: 10px 0;">Rp 0</h1>
+                <button class="btn" style="background:white; color:var(--primary); padding: 8px 15px;" onclick="bukaModalSetor()">Setor Simpanan</button>
             </div>
-            <small id="progressText">0% Terlunasi</small>
+            <div class="card" style="background:#FFC0CB; color:#8B0000; margin:0;">
+                <h4>Sisa Pinjaman</h4>
+                <h1 id="sisaPinjaman" style="font-size: 28px; margin: 10px 0;">Rp 0</h1>
+                <div style="background:white; border-radius:5px; height:8px; width:100%; margin-bottom:5px;">
+                    <div id="progressBar" style="background:var(--secondary); height:100%; width:0%; border-radius:5px;"></div>
+                </div>
+                <small id="progressText">0% Terlunasi</small>
+            </div>
         </div>
 
-        <!-- Baris 4: Menu Cepat -->
-        <div class="grid-2" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
-            <button class="btn btn-green" onclick="alert('Silakan hubungi Kasir/Admin untuk pembayaran angsuran cepat.')">Bayar Angsuran</button>
-            <button class="btn btn-green" onclick="alert('Silakan hubungi Kasir/Admin untuk setoran tunai.')">Setor Tunai</button>
-            <button class="btn btn-blue" onclick="window.location.href='/simulasi.html'">Ajukan Pinjaman</button>
-            <button class="btn btn-blue" onclick="hubungiCS()">Hubungi CS</button>
+        <!-- Menu Cepat -->
+        <div class="quick-menu">
+            <button class="btn btn-green" onclick="document.getElementById("tagihanAktifContainer").scrollIntoView({behavior:'smooth'})">
+                <i class="fa-solid fa-money-bill-transfer"></i> Bayar Angsuran
+            </button>
+            <button class="btn btn-green" onclick="bukaModalSetor()">
+                <i class="fa-solid fa-piggy-bank"></i> Setor Tunai
+            </button>
+            <button class="btn btn-blue" onclick="window.location.href='/simulasi.html'">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Ajukan Pinjaman
+            </button>
+            <button class="btn btn-blue" onclick="hubungiCS()">
+                <i class="fa-solid fa-headset"></i> Hubungi CS
+            </button>
         </div>
 
-        <!-- Baris 5: List Tagihan -->
+        <!-- List Tagihan -->
         <div class="card">
-            <h3>Tagihan Aktif</h3>
-            <div id="tagihanAktifContainer" style="border-left: 4px solid var(--secondary); padding-left:10px; margin-top:10px;">
+            <h3 style="margin-bottom: 15px;">Tagihan Aktif</h3>
+            <div id="tagihanAktifContainer">
                 <p style="color: var(--md-sys-color-on-surface-variant);">Memuat tagihan...</p>
             </div>
         </div>
 
-        <!-- Baris 6: Riwayat -->
+        <!-- Riwayat -->
         <div class="card">
-            <h3>Riwayat Transaksi</h3>
+            <h3 style="margin-bottom: 15px;">Riwayat Transaksi</h3>
             <ul id="riwayatList" style="list-style:none; padding:0;">
-                <li style="padding:10px; color: var(--md-sys-color-on-surface-variant);">Memuat riwayat transaksi...</li>
+                <li style="padding:10px; color: var(--md-sys-color-on-surface-variant);">Memuat riwayat...</li>
             </ul>
+        </div>
+    </div>
+
+    <!-- MODAL SETOR TUNAI (POP-UP) -->
+    <div id="modalSetor" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="tutupModalSetor()">&times;</span>
+            <h3 style="margin-bottom: 20px;">Setor Simpanan Sukarela</h3>
+            <label>Pilih Jenis Simpanan</label>
+            <select id="jenisSetor">
+                <option value="sukarela">Sukarela (Bebas)</option>
+                <option value="wajib">Wajib (Rp50.000)</option>
+            </select>
+            <label>Nominal (Rp)</label>
+            <input type="number" id="nominalSetorModal" placeholder="Min Rp10.000">
+            <button class="btn btn-green" style="width:100%; margin-top:10px;" onclick="prosesSetorModal()">KONFIRMASI SETOR</button>
         </div>
     </div>
 
     <!-- MAGIC NAVBAR BAWAH -->
     <div class="magic-nav-wrapper">
-      <nav class="magic-navigation">
-        <ul><!-- Menu dirender otomatis oleh magic-nav.js --></ul>
-      </nav>
+      <nav class="magic-navigation"><ul></ul></nav>
     </div>
 
     <script>
-        // === KONFIGURASI SUPABASE VIA BACKEND (AMAN) ===
         let supabase = null;
         let currentUser = null;
         let currentTagihan = null;
 
         async function initializeSupabase() {
-            try {
-                const response = await fetch('/api/env-config');
-                const config = await response.json();
-                if (!config.supabaseUrl || !config.supabaseKey) return;
-
-                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
-                await loadUserData();
-            } catch (error) {
-                console.error("Error initializing Supabase:", error);
-            }
+            const response = await fetch('/api/env-config');
+            const config = await response.json();
+            if (!config.supabaseUrl) return;
+            supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+            await loadUserData();
         }
 
-        // === SCRIPT DARK MODE ===
         function applyDarkModePreference() {
-            const isDarkMode = localStorage.getItem('darkMode') === 'true';
-            if (isDarkMode) {
+            if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark-mode');
-                const toggle = document.getElementById('darkModeToggle');
-                if(toggle) toggle.checked = true;
+                document.getElementById('darkModeToggle').checked = true;
             }
         }
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
         applyDarkModePreference();
 
-        // === FUNGSI AKSI TOMBOL ===
         function logout() {
             if (supabase) supabase.auth.signOut();
-            localStorage.clear();
             window.location.href = '/login';
         }
 
@@ -131,69 +143,34 @@
             window.open('https://wa.me/6281934874758?text=Halo%20Admin%20ANKOP,%20saya%20butuh%20bantuan', '_blank');
         }
 
-        // === CEK LOGIN & AMBIL DATA REAL-TIME ===
         async function loadUserData() {
-            if (!supabase) return;
-            const { data: { session }, error } = await supabase.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) { window.location.href = '/login'; return; }
             
-            if (!session) {
-                window.location.href = '/login';
-                return;
-            }
-
             currentUser = session.user;
-            const email = currentUser.email;
-            document.getElementById('userName').innerText = email.split('@')[0];
+            document.getElementById('userName').innerText = currentUser.email.split('@')[0];
             
-            if (email === 'andrizalhacieboan@gmail.com') {
-                window.location.href = '/admin';
-            }
+            if (currentUser.email === 'andrizalhacieboan@gmail.com') window.location.href = '/admin';
 
-            // Jalankan semua fungsi pengambilan data
             await loadTotalSimpanan();
             await loadPinjamanAktif();
             await loadTagihanAktif();
             await loadRiwayatTransaksi();
         }
 
-        // 1. AMBIL TOTAL SIMPANAN
         async function loadTotalSimpanan() {
-            const { data, error } = await supabase
-                .from('simpanan')
-                .select('jumlah')
-                .eq('user_id', currentUser.id);
-                
-            if (data && data.length > 0) {
-                const total = data.reduce((sum, item) => sum + item.jumlah, 0);
-                document.getElementById('totalSimpanan').innerText = 'Rp ' + total.toLocaleString('id-ID');
-            } else {
-                document.getElementById('totalSimpanan').innerText = 'Rp 0';
-            }
+            const { data } = await supabase.from('simpanan').select('jumlah').eq('user_id', currentUser.id);
+            const total = data ? data.reduce((s, i) => s + i.jumlah, 0) : 0;
+            document.getElementById('totalSimpanan').innerText = 'Rp ' + total.toLocaleString('id-ID');
         }
 
-        // 2. AMBIL PINJAMAN AKTIF & HITUNG PROGRESS
         async function loadPinjamanAktif() {
-            const { data, error } = await supabase
-                .from('pinjaman')
-                .select('id, plafon, tenor, status')
-                .eq('user_id', currentUser.id)
-                .eq('status', 'aktif')
-                .maybeSingle(); // Ambil 1 pinjaman aktif saja
-
+            const { data } = await supabase.from('pinjaman').select('id, plafon, tenor').eq('user_id', currentUser.id).eq('status', 'aktif').maybeSingle();
             if (data) {
-                // Hitung total angsuran pokok per bulan
                 const pokokPerBulan = data.plafon / data.tenor;
-                
-                // Hitung berapa bulan yang sudah lunas
-                const { data: lunasData } = await supabase
-                    .from('angsuran')
-                    .select('id')
-                    .eq('pinjaman_id', data.id)
-                    .eq('status', 'lunas');
-                
+                const { data: lunasData } = await supabase.from('angsuran').select('id').eq('pinjaman_id', data.id).eq('status', 'lunas');
                 const bulanLunas = lunasData ? lunasData.length : 0;
-                const sisaBulan = data.tenor - bulanLunas;
-                const sisaPinjaman = sisaBulan * pokokPerBulan;
+                const sisaPinjaman = (data.tenor - bulanLunas) * pokokPerBulan;
                 const progress = (bulanLunas / data.tenor) * 100;
 
                 document.getElementById('sisaPinjaman').innerText = 'Rp ' + sisaPinjaman.toLocaleString('id-ID');
@@ -205,110 +182,74 @@
             }
         }
 
-        // 3. AMBIL TAGIHAN BULAN INI YANG BELUM DIBAYAR
         async function loadTagihanAktif() {
-            const { data: pinjaman } = await supabase
-                .from('pinjaman')
-                .select('id, plafon, tenor')
-                .eq('user_id', currentUser.id)
-                .eq('status', 'aktif')
-                .maybeSingle();
-
+            const { data: pinjaman } = await supabase.from('pinjaman').select('id, plafon, tenor').eq('user_id', currentUser.id).eq('status', 'aktif').maybeSingle();
             const container = document.getElementById('tagihanAktifContainer');
+            if (!pinjaman) { container.innerHTML = '<p style="color: green;">Tidak ada tagihan. Lunas!</p>'; return; }
 
-            if (!pinjaman) {
-                container.innerHTML = '<p style="color: green;">Tidak ada tagihan aktif. Lunas!</p>';
-                return;
-            }
-
-            // Ambil 1 tagihan paling lama yang belum dibayar
-            const { data: tagihan } = await supabase
-                .from('angsuran')
-                .select('id, bulan_ke, jatuh_tempo')
-                .eq('pinjaman_id', pinjaman.id)
-                .eq('status', 'belum_bayar')
-                .order('bulan_ke', { ascending: true })
-                .limit(1)
-                .maybeSingle();
-
+            const { data: tagihan } = await supabase.from('angsuran').select('id, bulan_ke, jatuh_tempo').eq('pinjaman_id', pinjaman.id).eq('status', 'belum_bayar').order('bulan_ke', { ascending: true }).limit(1).maybeSingle();
             if (tagihan) {
                 currentTagihan = { ...tagihan, plafon: pinjaman.plafon, tenor: pinjaman.tenor };
-                const pokok = pinjaman.plafon / pinjaman.tenor;
-                const bunga = pinjaman.plafon * 0.01;
-                const total = pokok + bunga;
+                const total = (pinjaman.plafon / pinjaman.tenor) + (pinjaman.plafon * 0.01);
                 const jatuhTempo = new Date(tagihan.jatuh_tempo).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-
                 container.innerHTML = `
-                    <strong>Bulan ke-${tagihan.bulan_ke}</strong><br>
-                    Jatuh Tempo: ${jatuhTempo}<br>
-                    Nominal: <strong>Rp ${total.toLocaleString('id-ID')}</strong>
-                    <button class="btn btn-red" style="float:right;" onclick="bayarSekarang()">Bayar Sekarang</button>
+                    <div class="tagihan-card">
+                        <div>
+                            <strong>Bulan ke-${tagihan.bulan_ke}</strong><br>
+                            <small>Jatuh Tempo: ${jatuhTempo}</small><br>
+                            <strong style="font-size: 18px; color: var(--secondary);">Rp ${total.toLocaleString('id-ID')}</strong>
+                        </div>
+                        <button class="btn btn-red" onclick="bayarSekarang()">Bayar Sekarang</button>
+                    </div>
                 `;
             } else {
                 container.innerHTML = '<p style="color: green;">Semua tagihan lunas!</p>';
             }
         }
 
-        // FUNGSI BAYAR LANGSUNG DARI DASHBOARD (REAL-TIME)
         async function bayarSekarang() {
-            if (!currentTagihan) return alert("Tidak ada tagihan yang dipilih.");
-
-            const yakin = confirm(`Anda akan membayar tagihan Bulan ke-${currentTagihan.bulan_ke}. Lanjutkan?`);
-            if (!yakin) return;
-
-            // Update database angsuran menjadi lunas
-            const { error } = await supabase
-                .from('angsuran')
-                .update({ 
-                    status: 'lunas', 
-                    tanggal_bayar: new Date().toISOString(),
-                    denda: 0 // Anggap dibayar tepat waktu jika dari dashboard
-                })
-                .eq('id', currentTagihan.id);
-
-            if (error) {
-                alert("Gagal memproses pembayaran: " + error.message);
-            } else {
+            if (!currentTagihan) return;
+            if (!confirm(`Bayar tagihan Bulan ke-${currentTagihan.bulan_ke}?`)) return;
+            const { error } = await supabase.from('angsuran').update({ status: 'lunas', tanggal_bayar: new Date().toISOString(), denda: 0 }).eq('id', currentTagihan.id);
+            if (error) { alert("Gagal: " + error.message); } 
+            else {
                 alert("Pembayaran Berhasil!");
-                // Refresh semua data di dashboard
-                await loadPinjamanAktif();
-                await loadTagihanAktif();
-                await loadRiwayatTransaksi();
+                await loadPinjamanAktif(); await loadTagihanAktif(); await loadRiwayatTransaksi();
             }
         }
 
-        // 4. AMBIL RIWAYAT TRANSAKSI (5 TERAKHIR)
         async function loadRiwayatTransaksi() {
-            const listEl = document.getElementById('riwayatList');
-            listEl.innerHTML = '<li style="padding:10px;">Memuat...</li>';
-
-            // Ambil 5 setoran terakhir
-            const { data: setoran } = await supabase
-                .from('simpanan')
-                .select('jumlah, jenis_simpanan, tanggal')
-                .eq('user_id', currentUser.id)
-                .order('tanggal', { ascending: false })
-                .limit(5);
-
+            const { data: setoran } = await supabase.from('simpanan').select('jumlah, jenis_simpanan, tanggal').eq('user_id', currentUser.id).order('tanggal', { ascending: false }).limit(5);
             let html = '';
             if (setoran && setoran.length > 0) {
                 setoran.forEach(item => {
-                    const date = new Date(item.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                    html += `
-                        <li style="padding:10px; border-bottom:1px solid var(--md-sys-color-outline-variant); display:flex; justify-content:space-between;">
-                            <span>Setor ${item.jenis_simpanan} (${date})</span> 
-                            <span style="color:green">+ Rp ${item.jumlah.toLocaleString('id-ID')}</span>
-                        </li>
-                    `;
+                    const date = new Date(item.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                    html += `<li style="padding:12px 0; border-bottom:1px solid var(--md-sys-color-outline-variant); display:flex; justify-content:space-between;"><span><i class="fa-solid fa-arrow-down" style="color:green;"></i> Setor ${item.jenis_simpanan} (${date})</span> <span style="color:green; font-weight:bold;">+ Rp ${item.jumlah.toLocaleString('id-ID')}</span></li>`;
                 });
-            } else {
-                html = '<li style="padding:10px; color: var(--md-sys-color-on-surface-variant);">Belum ada riwayat transaksi.</li>';
-            }
-
-            listEl.innerHTML = html;
+            } else { html = '<li style="padding:10px; color: var(--md-sys-color-on-surface-variant);">Belum ada transaksi.</li>'; }
+            document.getElementById('riwayatList').innerHTML = html;
         }
 
-        // Jalankan inisialisasi saat halaman dibuka
+        // === FUNGSI MODAL SETOR TUNAI ===
+        function bukaModalSetor() { document.getElementById('modalSetor').style.display = 'flex'; }
+        function tutupModalSetor() { document.getElementById('modalSetor').style.display = 'none'; }
+
+        async function prosesSetorModal() {
+            const jenis = document.getElementById('jenisSetor').value;
+            let nominal = parseFloat(document.getElementById('nominalSetorModal').value);
+            
+            if (jenis === 'wajib') nominal = 50000; // Paksa 50k jika wajib
+            if (!nominal || nominal < 10000) { alert("Minimal setor Rp10.000!"); return; }
+
+            const { error } = await supabase.from('simpanan').insert([{ user_id: currentUser.id, jenis_simpanan: jenis, jumlah: nominal, tanggal: new Date().toISOString() }]);
+            if (error) { alert("Gagal setor: " + error.message); } 
+            else {
+                alert("Setor Berhasil!");
+                tutupModalSetor();
+                await loadTotalSimpanan(); await loadRiwayatTransaksi();
+            }
+        }
+
         initializeSupabase();
     </script>
 </body>
