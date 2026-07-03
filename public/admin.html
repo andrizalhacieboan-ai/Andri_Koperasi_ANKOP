@@ -2,69 +2,118 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Kasir - KSP ANKOP</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/magic-nav.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- NAVBAR ATAS -->
     <div class="navbar">
         <h2>KSP ANKOP - Panel Kasir Admin</h2>
-        <button class="btn btn-red" onclick="logout()">Logout</button>
+        
+        <div style="display: flex; align-items: center;">
+            <div class="theme-toggle-wrapper">
+                <label class="theme-toggle">
+                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                    <span class="slider">
+                        <span class="icon-sun">☀️</span>
+                        <span class="icon-moon">🌙</span>
+                    </span>
+                </label>
+            </div>
+            <button class="btn btn-red" style="padding: 5px 10px; margin-left: 15px;" onclick="logout()">Logout</button>
+        </div>
     </div>
 
+    <!-- KONTEN DASHBOARD -->
     <div class="container">
         <div class="grid-2">
             <!-- MENU F9: BAYAR ANGSURAN -->
             <div class="card">
                 <h3 style="color: var(--primary)">BAYAR ANGSURAN PINJAMAN</h3>
                 <hr>
-                <label>Cari Anggota No HP/Nama</label>
+                <label>Cari Anggota Email</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="searchMember" placeholder="Tekan F1 untuk cari...">
-                    <button class="btn btn-green">Cari</button>
+                    <input type="text" id="searchF9" placeholder="Email Anggota...">
+                    <button class="btn btn-green" onclick="cariTagihanAnggota()">Cari</button>
                 </div>
                 <div style="margin-top:15px;">
                     <h4>Tagihan Belum Bayar</h4>
-                    <div style="border:1px solid #ccc; height:100px; padding:10px; overflow-y:auto;">
-                        <input type="checkbox"> Oktober 2026 - Rp1.120.000 (Jatuh tempo: 23 November)
+                    <div id="listTagihan" style="border:1px solid var(--md-sys-color-outline); height:150px; padding:10px; overflow-y:auto; border-radius: 8px; background: var(--md-sys-color-surface-variant);">
+                        <p style="color: var(--md-sys-color-on-surface-variant); font-size: 12px; text-align: center;">Cari anggota untuk melihat tagihan.</p>
                     </div>
                 </div>
             </div>
+            
             <div class="card">
                 <h3>Rincian Pembayaran</h3>
                 <hr>
-                <p>Pokok: Rp1.000.000</p>
-                <p>Bunga (1%): Rp120.000</p>
-                <p>Denda: <span style="color:red">Rp0</span></p>
-                <h2 style="margin-top:10px; color:var(--dark)">Total: Rp1.120.000</h2>
-                <input type="number" placeholder="Uang Bayar">
-                <button class="btn btn-green" style="width:100%; margin-top:10px;">SIMPAN & CETAK</button>
+                <p>Pokok: Rp <span id="rincianPokok">0</span></p>
+                <p>Bunga (1%): Rp <span id="rincianBunga">0</span></p>
+                <p>Denda: <span style="color:red">Rp <span id="rincianDenda">0</span></span></p>
+                <h2 style="margin-top:10px; color:var(--dark)">Total: Rp <span id="rincianTotal">0</span></h2>
+                
+                <label style="margin-top: 10px;">Uang Bayar</label>
+                <input type="number" id="uangBayar" placeholder="Masukkan nominal uang" disabled>
+                <button class="btn btn-green" style="width:100%; margin-top:10px;" id="btnProsesF9" onclick="prosesBayarF9()" disabled>SIMPAN & CETAK</button>
             </div>
         </div>
 
+        <!-- MENU F10: SETOR SIMPANAN SUKARELA -->
         <div class="card" style="margin-top:20px;">
             <h3 style="color: var(--primary)">SETOR SIMPANAN SUKARELA</h3>
             <hr>
             <div class="grid-2">
                 <div>
-                    <label>Cari Anggota</label>
-                    <input type="text" placeholder="No HP / Nama">
-                    <p>Saldo Lama: Rp0</p>
+                    <label>Cari Anggota Email</label>
+                    <input type="text" id="searchF10" placeholder="Email Anggota...">
+                    <button class="btn btn-green" onclick="cariSaldoSukarela()">Cek Saldo</button>
+                    <p style="margin-top: 15px; font-weight: bold;">Saldo Lama: Rp <span id="saldoLamaSukarela">0</span></p>
+                    <input type="hidden" id="userIdF10">
                 </div>
                 <div>
-                    <label>Nominal Setor Rp100.000</label>
-                    <input type="number" placeholder="Rp...">
-                    <select>
-                        <option>Tunai</option>
-                        <option>Transfer</option>
+                    <label>Nominal Setor Minimal Rp100.000</label>
+                    <input type="number" id="nominalSetor" placeholder="Rp..." disabled>
+                    <select id="metodeSetor" disabled>
+                        <option value="Tunai">Tunai</option>
+                        <option value="Transfer">Transfer</option>
                     </select>
-                    <button class="btn btn-blue" style="width:100%">KONFIRMASI SETOR</button>
+                    <button class="btn btn-blue" style="width:100%" id="btnProsesF10" onclick="prosesSetorF10()" disabled>KONFIRMASI SETOR</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
+    <!-- MAGIC NAVBAR BAWAH -->
+    <div class="magic-nav-wrapper">
+      <nav class="magic-navigation">
+        <ul><!-- Menu dirender otomatis oleh magic-nav.js --></ul>
+      </nav>
+    </div>
 
+    <script>
+        // === KONFIGURASI SUPABASE VIA BACKEND (AMAN) ===
+        let supabase = null;
+        let selectedAngsuranId = null;
+        let totalBayarReal = 0;
+
+        async function initializeSupabase() {
+            try {
+                const response = await fetch('/api/env-config');
+                const config = await response.json();
+                if (!config.supabaseUrl || !config.supabaseKey) return;
+
+                supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+                await checkAdminAccess();
+            } catch (error) {
+                console.error("Error initializing Supabase:", error);
+            }
+        }
+
+        // === SCRIPT DARK MODE ===
         function applyDarkModePreference() {
             const isDarkMode = localStorage.getItem('darkMode') === 'true';
             if (isDarkMode) {
@@ -79,17 +128,229 @@
             localStorage.setItem('darkMode', isDarkMode);
         }
         applyDarkModePreference();
-        
-        // Cek Admin Security di Frontend
-        const userEmail = localStorage.getItem('user_email');
-        if(userEmail !== 'andrizalhacieboan@gmail.com') {
-            alert('Akses Ditolak! Anda bukan Admin.');
-            window.location.href = '/login';
+
+        // === CEK LOGIN & AKSES ADMIN ===
+        async function checkAdminAccess() {
+            if (!supabase) return;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                alert('Anda belum login!');
+                window.location.href = '/login';
+                return;
+            }
+            if (session.user.email !== 'andrizalhacieboan@gmail.com') {
+                alert('Akses Ditolak! Halaman ini khusus Kasir/Admin.');
+                window.location.href = '/';
+            }
         }
+
         function logout() {
+            if (supabase) supabase.auth.signOut();
             localStorage.clear();
             window.location.href = '/login';
         }
+
+        // ==========================================
+        // === LOGIKA REAL-TIME F9 (BAYAR ANGSURAN) ===
+        // ==========================================
+        async function cariTagihanAnggota() {
+            const email = document.getElementById('searchF9').value.trim();
+            if (!email) return alert("Masukkan email anggota!");
+
+            // 1. Cari User ID berdasarkan Email
+            const { data: userData, error: userErr } = await supabase
+                .from('users')
+                .select('id, email')
+                .eq('email', email)
+                .single();
+
+            if (userErr || !userData) {
+                document.getElementById('listTagihan').innerHTML = '<p style="color:red; font-size:12px;">Anggota tidak ditemukan.</p>';
+                return;
+            }
+
+            // 2. Ambil semua pinjaman aktif milik user
+            const { data: pinjamanData } = await supabase
+                .from('pinjaman')
+                .select('id, plafon, tenor')
+                .eq('user_id', userData.id)
+                .eq('status', 'aktif');
+
+            if (!pinjamanData || pinjamanData.length === 0) {
+                document.getElementById('listTagihan').innerHTML = '<p style="color:var(--md-sys-color-on-surface-variant); font-size:12px;">Tidak ada pinjaman aktif.</p>';
+                return;
+            }
+
+            const pinjamanIds = pinjamanData.map(p => p.id);
+            
+            // 3. Ambil angsuran yang statusnya belum bayar (urut bulan tertua)
+            const { data: angsuranData } = await supabase
+                .from('angsuran')
+                .select('id, bulan_ke, jatuh_tempo, pinjaman_id')
+                .in('pinjaman_id', pinjamanIds)
+                .eq('status', 'belum_bayar')
+                .order('bulan_ke', { ascending: true });
+
+            const listDiv = document.getElementById('listTagihan');
+            listDiv.innerHTML = '';
+            
+            if (!angsuranData || angsuranData.length === 0) {
+                listDiv.innerHTML = '<p style="color:green; font-size:12px;">Semua angsuran lunas!</p>';
+                return;
+            }
+
+            // Tampilkan list tagihan
+            angsuranData.forEach(ang => {
+                const pinjaman = pinjamanData.find(p => p.id === ang.pinjaman_id);
+                const pokok = pinjaman.plafon / pinjaman.tenor;
+                const bunga = pinjaman.plafon * 0.01;
+                const tagihan = pokok + bunga;
+
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-blue';
+                btn.style.cssText = 'width: 100%; margin-bottom: 5px; text-align: left; padding: 8px;';
+                btn.innerHTML = `Bulan ke-${ang.bulan_ke} | Jatuh tempo: ${new Date(ang.jatuh_tempo).toLocaleDateString('id-ID')} | Rp ${tagihan.toLocaleString('id-ID')}`;
+                btn.onclick = () => pilihTagihan(ang, pinjaman);
+                listDiv.appendChild(btn);
+            });
+        }
+
+        function pilihTagihan(angsuran, pinjaman) {
+            selectedAngsuranId = angsuran.id;
+            const pokok = pinjaman.plafon / pinjaman.tenor;
+            const bunga = pinjaman.plafon * 0.01;
+            
+            // Hitung Denda (BAGIAN 5: Rp10.000 per hari telat)
+            const jatuhTempo = new Date(angsuran.jatuh_tempo);
+            const hariIni = new Date();
+            const selisihHari = Math.floor((hariIni - jatuhTempo) / (1000 * 60 * 60 * 24));
+            const denda = selisihHari > 0 ? selisihHari * 10000 : 0;
+
+            totalBayarReal = pokok + bunga + denda;
+
+            // Update UI Rincian
+            document.getElementById('rincianPokok').innerText = pokok.toLocaleString('id-ID');
+            document.getElementById('rincianBunga').innerText = bunga.toLocaleString('id-ID');
+            document.getElementById('rincianDenda').innerText = denda.toLocaleString('id-ID');
+            document.getElementById('rincianTotal').innerText = totalBayarReal.toLocaleString('id-ID');
+
+            // Aktifkan input
+            document.getElementById('uangBayar').value = totalBayarReal; // Auto isi
+            document.getElementById('uangBayar').disabled = false;
+            document.getElementById('btnProsesF9').disabled = false;
+        }
+
+        async function prosesBayarF9() {
+            const uangBayar = parseFloat(document.getElementById('uangBayar').value);
+            if (uangBayar < totalBayarReal) {
+                return alert("Uang yang dibayar kurang dari total tagihan!");
+            }
+
+            // Update database: Ubah status angsuran menjadi lunas
+            const { error } = await supabase
+                .from('angsuran')
+                .update({ 
+                    status: 'lunas', 
+                    tanggal_bayar: new Date().toISOString(),
+                    denda: totalBayarReal - (parseFloat(document.getElementById('rincianPokok').innerText.replace(/\./g, '')) + parseFloat(document.getElementById('rincianBunga').innerText.replace(/\./g, '')))
+                })
+                .eq('id', selectedAngsuranId);
+
+            if (error) {
+                alert("Gagal memproses pembayaran: " + error.message);
+            } else {
+                const kembalian = uangBayar - totalBayarReal;
+                alert(`Pembayaran Berhasil!\nStruk dicetak (Simulasi).\nKembalian: Rp ${kembalian.toLocaleString('id-ID')}`);
+                
+                // Reset UI
+                document.getElementById('rincianPokok').innerText = '0';
+                document.getElementById('rincianBunga').innerText = '0';
+                document.getElementById('rincianDenda').innerText = '0';
+                document.getElementById('rincianTotal').innerText = '0';
+                document.getElementById('uangBayar').value = '';
+                document.getElementById('uangBayar').disabled = true;
+                document.getElementById('btnProsesF9').disabled = true;
+                
+                // Refresh list tagihan
+                cariTagihanAnggota();
+            }
+        }
+
+        // ==========================================
+        // === LOGIKA REAL-TIME F10 (SETOR SUKARELA) ===
+        // ==========================================
+        async function cariSaldoSukarela() {
+            const email = document.getElementById('searchF10').value.trim();
+            if (!email) return alert("Masukkan email anggota!");
+
+            const { data: userData, error: userErr } = await supabase
+                .from('users')
+                .select('id, email')
+                .eq('email', email)
+                .single();
+
+            if (userErr || !userData) {
+                alert("Anggota tidak ditemukan!");
+                return;
+            }
+
+            document.getElementById('userIdF10').value = userData.id;
+
+            // Ambil semua simpanan sukarela
+            const { data: simpananData } = await supabase
+                .from('simpanan')
+                .select('jumlah')
+                .eq('user_id', userData.id)
+                .eq('jenis_simpanan', 'sukarela');
+
+            let totalSaldo = 0;
+            if (simpananData && simpananData.length > 0) {
+                totalSaldo = simpananData.reduce((sum, item) => sum + item.jumlah, 0);
+            }
+
+            document.getElementById('saldoLamaSukarela').innerText = totalSaldo.toLocaleString('id-ID');
+            
+            // Aktifkan form setor
+            document.getElementById('nominalSetor').disabled = false;
+            document.getElementById('metodeSetor').disabled = false;
+            document.getElementById('btnProsesF10').disabled = false;
+        }
+
+        async function prosesSetorF10() {
+            const userId = document.getElementById('userIdF10').value;
+            const nominal = parseFloat(document.getElementById('nominalSetor').value);
+            const metode = document.getElementById('metodeSetor').value;
+
+            if (!userId) return alert("Cari anggota terlebih dahulu!");
+            if (!nominal || nominal < 10000) return alert("Minimal setor Rp10.000!");
+
+            // Insert ke tabel simpanan
+            const { error } = await supabase
+                .from('simpanan')
+                .insert([{
+                    user_id: userId,
+                    jenis_simpanan: 'sukarela',
+                    jumlah: nominal,
+                    tanggal: new Date().toISOString()
+                }]);
+
+            if (error) {
+                alert("Gagal setor: " + error.message);
+            } else {
+                // Update saldo di UI
+                const saldoLama = parseFloat(document.getElementById('saldoLamaSukarela').innerText.replace(/\./g, ''));
+                const saldoBaru = saldoLama + nominal;
+                document.getElementById('saldoLamaSukarela').innerText = saldoBaru.toLocaleString('id-ID');
+                
+                alert(`Setor Sukarela Berhasil!\nMetode: ${metode}\nSaldo Baru: Rp ${saldoBaru.toLocaleString('id-ID')}`);
+                
+                // Reset input nominal
+                document.getElementById('nominalSetor').value = '';
+            }
+        }
+
+        // Jalankan inisialisasi saat halaman dibuka
+        initializeSupabase();
     </script>
 </body>
 </html>
