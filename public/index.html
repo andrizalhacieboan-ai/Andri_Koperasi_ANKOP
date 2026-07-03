@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Anggota - KSP ANKOP</title>
+    <!-- CSS Utama & FontAwesome untuk Ikon Navbar -->
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Script Navbar & Supabase -->
+    <script src="/magic-nav.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- NAVBAR ATAS -->
     <div class="navbar">
         <div>
             Halo, <strong id="userName">Peminjam</strong> 
-            <span style="font-size:12px; background:white; color:var(--primary); padding:2px 5px; border-radius:5px; margin-left:10px; cursor:pointer;" onclick="alert('Hubungi CS di 081934874758')">Bantuan</span>
+            <span style="font-size:12px; background:white; color:var(--primary); padding:2px 5px; border-radius:5px; margin-left:10px; cursor:pointer;" onclick="hubungiCS()">Bantuan</span>
         </div>
         
         <div style="display: flex; align-items: center;">
@@ -30,6 +35,7 @@
         </div>
     </div>
 
+    <!-- KONTEN DASHBOARD -->
     <div class="container">
         <!-- Baris 2: Kartu Hijau Simpanan -->
         <div class="card" style="background:var(--primary); color:white;">
@@ -53,7 +59,7 @@
             <button class="btn btn-green" onclick="window.location.href='/simulasi.html'">Bayar Angsuran</button>
             <button class="btn btn-green" onclick="alert('Halaman Setor Tunai')">Setor Tunai</button>
             <button class="btn btn-blue" onclick="window.location.href='/simulasi.html'">Ajukan Pinjaman</button>
-            <button class="btn btn-blue" onclick="hubungiCS()">Hubungi CS Via Wa</button>
+            <button class="btn btn-blue" onclick="hubungiCS()">Hubungi CS</button>
         </div>
 
         <!-- Baris 5: List Tagihan -->
@@ -79,6 +85,13 @@
                 </li>
             </ul>
         </div>
+    </div>
+
+    <!-- MAGIC NAVBAR BAWAH -->
+    <div class="magic-nav-wrapper">
+      <nav class="magic-navigation">
+        <ul><!-- Menu dirender otomatis oleh magic-nav.js --></ul>
+      </nav>
     </div>
 
     <script>
