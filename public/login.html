@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- NAVBAR ATAS (Hanya untuk Toggle Dark Mode) -->
+    <!-- NAVBAR ATAS -->
     <div class="navbar" style="justify-content: flex-end;">
         <div class="theme-toggle-wrapper">
             <label class="theme-toggle">
@@ -24,20 +24,36 @@
     </div>
 
     <div class="container">
-        <div class="card" style="max-width: 400px; margin: 50px auto;">
+        <div class="card" style="max-width: 450px; margin: 40px auto;">
             <div class="header-info">
-                <h2>KOPERASI SIMPAN PINJAM ANKOP</h2>
-                AHU: ........... NIB: ........... OJK: Terdaftar<br>
+                <h2 style="margin-bottom: 5px;">KOPERASI SIMPAN PINJAM ANKOP</h2>
+                AHU: ANKOP15062002 NIB: KSPASKOP20020615 OJK: Terdaftar<br>
                 Alamat: Simpang SKPF, Riau | Telp: 6281934874758
             </div>
-            <h3 style="text-align:center; margin-bottom: 20px;">Login Anggota/Admin</h3>
             
-            <button class="btn btn-blue" style="width:100%; opacity: 0.6; cursor: not-allowed;" id="loginBtn" disabled onclick="loginWithGoogle()">
-                Memuat Server...
-            </button>
+            <h3 style="text-align:center; margin-bottom: 20px;">Masuk Akun</h3>
             
-            <p style="font-size: 12px; text-align: center; margin-top: 15px;">
-                * TERIMAKASIH TELAH BERGABUNG DENGAN KAMI KSP ANKOP
+            <div id="loginForm">
+                <label>Email</label>
+                <input type="email" id="emailInput" placeholder="Masukkan email (Admin/Anggota)">
+                
+                <label>Password</label>
+                <input type="password" id="passwordInput" placeholder="Masukkan password">
+                
+                <button class="btn btn-green" style="width:100%; margin-top: 10px;" id="loginBtn" onclick="loginWithEmail()">
+                    Login
+                </button>
+                <button class="btn btn-blue" style="width:100%; margin-top: 10px; background: #DB4437;" onclick="loginWithGoogle()">
+                    <i class="fa-brands fa-google"></i> Login dengan Google
+                </button>
+                <p style="font-size: 12px; text-align: center; margin-top: 15px; color: var(--md-sys-color-on-surface-variant);">
+                    Belum punya akun? <a href="#" onclick="signUp()" style="color: var(--primary); font-weight: bold;">Daftar di sini</a>
+                </p>
+                <p id="errorMsg" style="color: red; font-size: 12px; text-align: center; display: none;"></p>
+            </div>
+
+            <p style="font-size: 12px; text-align: center; margin-top: 15px; border-top: 1px solid var(--md-sys-color-outline-variant); padding-top: 15px;">
+                Terima kasih telah bergabung dengan KSP ANKOP
             </p>
         </div>
     </div>
@@ -45,89 +61,102 @@
     <!-- MAGIC NAVBAR BAWAH -->
     <div class="magic-nav-wrapper">
       <nav class="magic-navigation">
-        <ul><!-- Menu dirender otomatis oleh magic-nav.js --></ul>
+        <ul></ul>
       </nav>
     </div>
 
     <script>
         let supabase = null;
 
-        // === KONFIGURASI SUPABASE VIA BACKEND (AMAN) ===
         async function initializeSupabase() {
             try {
                 const response = await fetch('/api/env-config');
                 const config = await response.json();
-                
-                if (!config.supabaseUrl || !config.supabaseKey) {
-                    document.getElementById('loginBtn').innerText = "Error: Server tidak terhubung";
-                    return;
-                }
+                if (!config.supabaseUrl || !config.supabaseKey) return;
 
                 supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
-                
-                // Aktifkan tombol login setelah Supabase siap
-                const btn = document.getElementById('loginBtn');
-                btn.innerText = "Login dengan Google";
-                btn.style.opacity = "1";
-                btn.style.cursor = "pointer";
-                btn.disabled = false;
 
-                // Listener jika status login berubah (misal setelah redirect Google)
-                supabase.auth.onAuthStateChange((event, session) => {
-                    if (session) {
-                        if (session.user.email === 'andrizalhacieboan@gmail.com') {
-                            window.location.href = '/admin';
-                        } else {
-                            window.location.href = '/';
-                        }
-                    }
-                });
-
-                // Cek sesi yang sudah ada (Jika user sudah login tapi buka /login lagi)
+                // Cek sesi yang sudah ada
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
-                    if (session.user.email === 'andrizalhacieboan@gmail.com') {
-                        window.location.href = '/admin';
-                    } else {
-                        window.location.href = '/';
-                    }
+                    redirectBasedOnRole(session.user.email);
                 }
-
             } catch (error) {
-                console.error("Error initializing Supabase:", error);
-                document.getElementById('loginBtn').innerText = "Gagal Memuat";
+                console.error("Error:", error);
             }
         }
 
-        // === SCRIPT DARK MODE ===
+        function redirectBasedOnRole(email) {
+            if (email === 'andrizalhacieboan@gmail.com') {
+                window.location.href = '/admin';
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        async function loginWithEmail() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errBox = document.getElementById('errorMsg');
+            errBox.style.display = 'none';
+
+            if (!email || !password) {
+                errBox.innerText = "Email dan password wajib diisi!";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                errBox.innerText = "Login gagal: " + error.message;
+                errBox.style.display = 'block';
+            } else {
+                redirectBasedOnRole(data.user.email);
+            }
+        }
+
+        async function signUp() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            const errBox = document.getElementById('errorMsg');
+            errBox.style.display = 'none';
+
+            if (!email || !password) {
+                errBox.innerText = "Email dan password wajib diisi untuk daftar!";
+                errBox.style.display = 'block';
+                return;
+            }
+
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) {
+                errBox.innerText = "Gagal daftar: " + error.message;
+                errBox.style.display = 'block';
+            } else {
+                alert("Pendaftaran berhasil! Silakan login.");
+            }
+        }
+
+        async function loginWithGoogle() {
+            if (!supabase) return alert("Sistem masih memuat.");
+            await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+        }
+
+        // Dark Mode
         function applyDarkModePreference() {
-            const isDarkMode = localStorage.getItem('darkMode') === 'true';
-            if (isDarkMode) {
+            if (localStorage.getItem('darkMode') === 'true') {
                 document.body.classList.add('dark-mode');
-                const toggle = document.getElementById('darkModeToggle');
-                if(toggle) toggle.checked = true;
+                document.getElementById('darkModeToggle').checked = true;
             }
         }
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
         applyDarkModePreference();
 
-        // === FUNGSI LOGIN GOOGLE ===
-        async function loginWithGoogle() {
-            if (!supabase) return alert("Sistem masih memuat, coba lagi dalam 2 detik.");
-            
-            await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { 
-                    redirectTo: window.location.origin // Redirect ke halaman utama, akan dicek oleh script di atas
-                }
-            });
-        }
-
-        // Jalankan inisialisasi saat halaman dibuka
         initializeSupabase();
     </script>
 </body>
